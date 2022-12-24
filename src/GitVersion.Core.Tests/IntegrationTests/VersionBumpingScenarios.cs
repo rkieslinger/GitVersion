@@ -1,6 +1,6 @@
 using GitTools.Testing;
+using GitVersion.Configuration;
 using GitVersion.Core.Tests.Helpers;
-using GitVersion.Model.Configuration;
 using GitVersion.VersionCalculation;
 using LibGit2Sharp;
 using NUnit.Framework;
@@ -13,14 +13,14 @@ public class VersionBumpingScenarios : TestBase
     [Test]
     public void AppliedPrereleaseTagCausesBump()
     {
-        var configuration = new Config
+        var configuration = new GitVersionConfiguration
         {
             Branches =
             {
                 {
-                    MainBranch, new BranchConfig
+                    MainBranch, new BranchConfiguration
                     {
-                        Tag = "pre",
+                        Label = "pre",
                         SourceBranches = new HashSet<string>()
                     }
                 }
@@ -90,7 +90,7 @@ public class VersionBumpingScenarios : TestBase
     [TestCase("feat: Major update\n\nSome descriptive text\nWith a second line\n\nBREAKING CHANGE: A reason", "2.0.0")]
     public void CanUseConventionalCommitsToBumpVersion(string commitMessage, string expectedVersion)
     {
-        var configuration = new Config
+        var configuration = new GitVersionConfiguration
         {
             VersioningMode = VersioningMode.Mainline,
 

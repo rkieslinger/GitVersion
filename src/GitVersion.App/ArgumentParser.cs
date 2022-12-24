@@ -2,7 +2,6 @@ using GitVersion.BuildAgents;
 using GitVersion.Extensions;
 using GitVersion.Helpers;
 using GitVersion.Logging;
-using GitVersion.Model;
 using GitVersion.OutputVariables;
 
 namespace GitVersion;
@@ -409,12 +408,7 @@ public class ArgumentParser : IArgumentParser
 
     private static void ParseVerbosity(Arguments arguments, string? value)
     {
-        // first try the old version, this check will be removed in version 6.0.0, making it a breaking change
-        if (Enum.TryParse(value, true, out LogLevel logLevel))
-        {
-            arguments.Verbosity = LogExtensions.GetVerbosityForLevel(logLevel);
-        }
-        else if (!Enum.TryParse(value, true, out arguments.Verbosity))
+        if (!Enum.TryParse(value, true, out arguments.Verbosity))
         {
             throw new WarningException($"Could not parse Verbosity value '{value}'");
         }
@@ -425,7 +419,7 @@ public class ArgumentParser : IArgumentParser
         if (values == null || values.Count == 0)
             return;
 
-        var parser = new OverrideConfigOptionParser();
+        var parser = new OverrideConfigurationOptionParser();
 
         // key=value
         foreach (var keyValueOption in values)
@@ -437,7 +431,7 @@ public class ArgumentParser : IArgumentParser
             }
 
             var optionKey = keyAndValue[0].ToLowerInvariant();
-            if (!OverrideConfigOptionParser.SupportedProperties.Contains(optionKey))
+            if (!OverrideConfigurationOptionParser.SupportedProperties.Contains(optionKey))
             {
                 throw new WarningException($"Could not parse /overrideconfig option: {keyValueOption}. Unsupported 'key'.");
             }

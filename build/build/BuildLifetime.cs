@@ -1,15 +1,16 @@
 using Build.Utilities;
+using Common.Lifetime;
 using Common.Utilities;
 
 namespace Build;
 
 public class BuildLifetime : BuildLifetimeBase<BuildContext>
 {
-    public override void Setup(BuildContext context)
+    public override void Setup(BuildContext context, ISetupContext info)
     {
-        base.Setup(context);
+        base.Setup(context, info);
 
-        context.MsBuildConfiguration = context.Argument(Arguments.Configuration, "Release");
+        context.MsBuildConfiguration = context.Argument(Arguments.Configuration, Constants.DefaultConfiguration);
         context.EnabledUnitTests = context.IsEnabled(EnvVars.EnabledUnitTests);
 
         context.Credentials = Credentials.GetCredentials(context);
@@ -36,5 +37,6 @@ public class BuildLifetime : BuildLifetimeBase<BuildContext>
         msBuildSettings.WithProperty("RepositoryBranch", version.GitVersion.BranchName);
         msBuildSettings.WithProperty("RepositoryCommit", version.GitVersion.Sha);
         msBuildSettings.WithProperty("NoPackageAnalysis", "true");
+        msBuildSettings.WithProperty("UseSharedCompilation", "false");
     }
 }

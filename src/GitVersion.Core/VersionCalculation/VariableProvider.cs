@@ -3,7 +3,6 @@ using GitVersion.Configuration;
 using GitVersion.Extensions;
 using GitVersion.Helpers;
 using GitVersion.Logging;
-using GitVersion.Model.Configuration;
 using GitVersion.OutputVariables;
 
 namespace GitVersion.VersionCalculation;
@@ -19,57 +18,62 @@ public class VariableProvider : IVariableProvider
         this.log = log.NotNull();
     }
 
-    public VersionVariables GetVariablesFor(SemanticVersion semanticVersion, EffectiveConfiguration config, bool isCurrentCommitTagged)
+    public VersionVariables GetVariablesFor(SemanticVersion semanticVersion, EffectiveConfiguration configuration, bool isCurrentCommitTagged)
     {
-        var isContinuousDeploymentMode = config.VersioningMode == VersioningMode.ContinuousDeployment && !isCurrentCommitTagged;
+        var isContinuousDeploymentMode = configuration.VersioningMode == VersioningMode.ContinuousDeployment && !isCurrentCommitTagged;
         if (isContinuousDeploymentMode)
         {
             semanticVersion = new SemanticVersion(semanticVersion);
             // Continuous Deployment always requires a pre-release tag unless the commit is tagged
             if (semanticVersion.PreReleaseTag != null && semanticVersion.PreReleaseTag.HasTag() != true)
             {
-                semanticVersion.PreReleaseTag.Name = config.GetBranchSpecificTag(this.log, semanticVersion.BuildMetaData?.Branch, null);
+                semanticVersion.PreReleaseTag.Name = configuration.GetBranchSpecificTag(this.log, semanticVersion.BuildMetaData?.Branch, null);
                 if (semanticVersion.PreReleaseTag.Name.IsNullOrEmpty())
                 {
-                    semanticVersion.PreReleaseTag.Name = config.ContinuousDeploymentFallbackTag;
+                    // TODO: Why do we manipulating the semantic version here in the VariableProvider? The method name is GET not MANIPULATE.
+                    // What is about the separation of concern and single-responsibility principle?
+                    semanticVersion.PreReleaseTag.Name = configuration.ContinuousDeploymentFallbackLabel;
                 }
             }
         }
 
         // Evaluate tag number pattern and append to prerelease tag, preserving build metadata
-        var appendTagNumberPattern = !config.TagNumberPattern.IsNullOrEmpty() && semanticVersion.PreReleaseTag?.HasTag() == true;
+        var appendTagNumberPattern = !configuration.LabelNumberPattern.IsNullOrEmpty() && semanticVersion.PreReleaseTag?.HasTag() == true;
         if (appendTagNumberPattern)
         {
-            if (semanticVersion.BuildMetaData?.Branch != null && config.TagNumberPattern != null)
+            if (semanticVersion.BuildMetaData?.Branch != null && configuration.LabelNumberPattern != null)
             {
-                var match = Regex.Match(semanticVersion.BuildMetaData.Branch, config.TagNumberPattern);
+                var match = Regex.Match(semanticVersion.BuildMetaData.Branch, configuration.LabelNumberPattern);
                 var numberGroup = match.Groups["number"];
                 if (numberGroup.Success && semanticVersion.PreReleaseTag != null)
                 {
-                    semanticVersion.PreReleaseTag.Name += numberGroup.Value.PadLeft(config.BuildMetaDataPadding, '0');
+                    // TODO: Why do we manipulating the semantic version here in the VariableProvider? The method name is GET not MANIPULATE.
+                    // What is about the separation of concern and single-responsibility principle?
+                    semanticVersion.PreReleaseTag.Name += numberGroup.Value;
                 }
             }
         }
 
-        if (isContinuousDeploymentMode || appendTagNumberPattern || config.VersioningMode == VersioningMode.Mainline)
+        if (isContinuousDeploymentMode || appendTagNumberPattern || configuration.VersioningMode == VersioningMode.Mainline)
         {
+            // TODO: Why do we manipulating the semantic version here in the VariableProvider? The method name is GET not MANIPULATE.
+            // What is about the separation of concern and single-responsibility principle?
             PromoteNumberOfCommitsToTagNumber(semanticVersion);
         }
 
-        var semverFormatValues = new SemanticVersionFormatValues(semanticVersion, config);
+        var semverFormatValues = new SemanticVersionFormatValues(semanticVersion, configuration);
 
-        var informationalVersion = CheckAndFormatString(config.AssemblyInformationalFormat, semverFormatValues, semverFormatValues.InformationalVersion, "AssemblyInformationalVersion");
+        var informationalVersion = CheckAndFormatString(configuration.AssemblyInformationalFormat, semverFormatValues, semverFormatValues.InformationalVersion, "AssemblyInformationalVersion");
 
-        var assemblyFileSemVer = CheckAndFormatString(config.AssemblyFileVersioningFormat, semverFormatValues, semverFormatValues.AssemblyFileSemVer, "AssemblyFileVersioningFormat");
+        var assemblyFileSemVer = CheckAndFormatString(configuration.AssemblyFileVersioningFormat, semverFormatValues, semverFormatValues.AssemblyFileSemVer, "AssemblyFileVersioningFormat");
 
-        var assemblySemVer = CheckAndFormatString(config.AssemblyVersioningFormat, semverFormatValues, semverFormatValues.AssemblySemVer, "AssemblyVersioningFormat");
+        var assemblySemVer = CheckAndFormatString(configuration.AssemblyVersioningFormat, semverFormatValues, semverFormatValues.AssemblySemVer, "AssemblyVersioningFormat");
 
         var variables = new VersionVariables(
             semverFormatValues.Major,
             semverFormatValues.Minor,
             semverFormatValues.Patch,
             semverFormatValues.BuildMetaData,
-            semverFormatValues.BuildMetaDataPadded,
             semverFormatValues.FullBuildMetaData,
             semverFormatValues.BranchName,
             semverFormatValues.EscapedBranchName,
@@ -77,8 +81,6 @@ public class VariableProvider : IVariableProvider
             semverFormatValues.ShortSha,
             semverFormatValues.MajorMinorPatch,
             semverFormatValues.SemVer,
-            semverFormatValues.LegacySemVer,
-            semverFormatValues.LegacySemVerPadded,
             semverFormatValues.FullSemVer,
             assemblySemVer,
             assemblyFileSemVer,
@@ -90,13 +92,8 @@ public class VariableProvider : IVariableProvider
             semverFormatValues.WeightedPreReleaseNumber,
             informationalVersion,
             semverFormatValues.CommitDate,
-            semverFormatValues.NuGetVersion,
-            semverFormatValues.NuGetVersionV2,
-            semverFormatValues.NuGetPreReleaseTag,
-            semverFormatValues.NuGetPreReleaseTagV2,
             semverFormatValues.VersionSourceSha,
             semverFormatValues.CommitsSinceVersionSource,
-            semverFormatValues.CommitsSinceVersionSourcePadded,
             semverFormatValues.UncommittedChanges);
 
         return variables;
@@ -140,8 +137,6 @@ public class VariableProvider : IVariableProvider
         }
         else
         {
-            WarnIfUsingObsoleteFormatValues(formatString);
-
             try
             {
                 formattedString = formatString.FormatWith(source, this.environment).RegexReplace("[^0-9A-Za-z-.+]", "-");
@@ -153,16 +148,5 @@ public class VariableProvider : IVariableProvider
         }
 
         return formattedString;
-    }
-
-    private void WarnIfUsingObsoleteFormatValues(string formatString)
-    {
-#pragma warning disable CS0618 // Type or member is obsolete
-        const string obsoletePropertyName = nameof(SemanticVersionFormatValues.DefaultInformationalVersion);
-#pragma warning restore CS0618 // Type or member is obsolete
-        if (formatString.Contains($"{{{obsoletePropertyName}}}"))
-        {
-            this.log.Write(LogLevel.Warn, $"Use format variable '{nameof(SemanticVersionFormatValues.InformationalVersion)}' instead of '{obsoletePropertyName}' which is obsolete and will be removed in a future release.");
-        }
     }
 }

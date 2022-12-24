@@ -40,14 +40,22 @@ public sealed class ProjectFileUpdater : IProjectFileUpdater
         var assemblyVersion = variables.AssemblySemVer;
         var assemblyInfoVersion = variables.InformationalVersion;
         var assemblyFileVersion = variables.AssemblySemFileVer;
-        var packageVersion = variables.NuGetVersion;
+        var packageVersion = variables.SemVer;
 
         foreach (var projectFile in projectFilesToUpdate)
         {
             var localProjectFile = projectFile.FullName;
 
             var originalFileContents = this.fileSystem.ReadAllText(localProjectFile);
-            var fileXml = XElement.Parse(originalFileContents);
+            XElement fileXml;
+            try
+            {
+                fileXml = XElement.Parse(originalFileContents);
+            }
+            catch (XmlException e)
+            {
+                throw new XmlException($"Unable to parse file as xml: {localProjectFile}", e);
+            }
 
             if (!CanUpdateProjectFile(fileXml))
             {

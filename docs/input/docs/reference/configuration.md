@@ -32,7 +32,7 @@ To see the effective configuration (defaults and overrides), you can run
 `gitversion /showConfig`.
 
 To create your config file just type `gitversion init` in your repo directory,
-after [installing]. A minimal `GitVersion.yml` configuration file will be
+after [installing][installing]. A minimal `GitVersion.yml` configuration file will be
 created. Modify this to suit your needs.
 
 ## Global configuration
@@ -46,16 +46,13 @@ assembly-file-versioning-scheme: MajorMinorPatch
 assembly-informational-format: '{InformationalVersion}'
 mode: ContinuousDelivery
 increment: Inherit
-continuous-delivery-fallback-tag: ci
-tag-prefix: '[vV]'
+continuous-delivery-fallback-label: ci
+label-prefix: '[vV]'
 major-version-bump-message: '\+semver:\s?(breaking|major)'
 minor-version-bump-message: '\+semver:\s?(feature|minor)'
 patch-version-bump-message: '\+semver:\s?(fix|patch)'
 no-bump-message: '\+semver:\s?(none|skip)'
-legacy-semver-padding: 4
-build-metadata-padding: 4
-commits-since-version-source-padding: 4
-tag-pre-release-weight: 60000
+label-pre-release-weight: 60000
 commit-message-incrementing: Enabled
 ignore:
   sha: []
@@ -103,7 +100,7 @@ skip updating the `AssemblyFileVersion` while still updating the
 Specifies the format of `AssemblyFileVersion` and
 overwrites the value of `assembly-file-versioning-scheme`.
 
-Expressions in curly braces reference one of the [variables]
+Expressions in curly braces reference one of the [variables][variables]
 or a process-scoped environment variable (when prefixed with `env:`).  For example,
 
 ```yaml
@@ -145,26 +142,26 @@ for [increment](#increment),
 [prevent-increment-of-merged-branch-version](#prevent-increment-of-merged-branch-version)
 and [tracks-release-branches](#tracks-release-branches).
 
-### continuous-delivery-fallback-tag
+### continuous-delivery-fallback-label
 
 When using `mode: ContinuousDeployment`, the value specified in
-`continuous-delivery-fallback-tag` will be used as the pre-release tag for
+`continuous-delivery-fallback-label` will be used as the pre-release label for
 branches which do not have one specified. Default set to `ci`.
 
 Just to clarify: For a build name without `...-ci-<buildnumber>` or in other
 words without a `PreReleaseTag` (ergo `"PreReleaseTag":""` in GitVersion's JSON output)
-at the end you would need to set `continuous-delivery-fallback-tag` to an empty
+at the end you would need to set `continuous-delivery-fallback-label` to an empty
 string (`''`):
 
 ```yaml
 mode: ContinuousDeployment
-continuous-delivery-fallback-tag: ''
+continuous-delivery-fallback-label: ''
 ...
 ```
 
 Doing so can be helpful if you use your `main` branch as a `release` branch.
 
-### tag-prefix
+### label-prefix
 
 A regex which is used to trim Git tags before processing (e.g., v1.0.0). Default
 is `[vV]`, although this is just for illustrative purposes as we do a IgnoreCase
@@ -194,25 +191,10 @@ Used to tell GitVersion not to increment when in Mainline development mode.
 Default `\+semver:\s?(none|skip)`, which will match occurrences of `+semver:
 none` and `+semver: skip`
 
-### legacy-semver-padding
+When a commit matches **both** the `no-bump-message` **and** any combination of
+the `version-bump-message`, `no-bump-message` takes precedence and no increment is applied.
 
-The number of characters to pad `LegacySemVer` to in the `LegacySemVerPadded`
-[variable][variables]. Default is `4`, which will pad the `LegacySemVer` value
- of `3.0.0-beta1` to `3.0.0-beta0001`.
-
-### build-metadata-padding
-
-The number of characters to pad `BuildMetaData` to in the `BuildMetaDataPadded`
-[variable][variables]. Default is `4`, which will pad the `BuildMetaData` value
-of `1` to `0001`.
-
-### commits-since-version-source-padding
-
-The number of characters to pad `CommitsSinceVersionSource` to in the
-`CommitsSinceVersionSourcePadded` [variable][variables]. Default is `4`, which
-will pad the `CommitsSinceVersionSource` value of `1` to `0001`.
-
-### tag-pre-release-weight
+### label-pre-release-weight
 
 The pre-release weight in case of tagged commits. If the value is not set in the
 configuration, a default weight of 60000 is used instead. If the
@@ -281,9 +263,9 @@ merge-message-formats:
 
 The regular expression should contain the following capture groups:
 
-* `SourceBranch` - Identifies the source branch of the merge
-* `TargetBranch` - Identifies the target branch of the merge
-* `PullRequestNumber` - Captures the pull-request number
+*   `SourceBranch` - Identifies the source branch of the merge
+*   `TargetBranch` - Identifies the target branch of the merge
+*   `PullRequestNumber` - Captures the pull-request number
 
 Custom merge message formats are evaluated _before_ any built in formats.
 Support for [Conventional Commits][conventional-commits] can be
@@ -311,7 +293,7 @@ branches:
   main:
     regex: ^master$|^main$
     mode: ContinuousDelivery
-    tag: ''
+    label: ''
     increment: Patch
     prevent-increment-of-merged-branch-version: true
     track-merge-target: false
@@ -323,7 +305,7 @@ branches:
   develop:
     regex: ^dev(elop)?(ment)?$
     mode: ContinuousDeployment
-    tag: alpha
+    label: alpha
     increment: Minor
     prevent-increment-of-merged-branch-version: false
     track-merge-target: true
@@ -335,7 +317,7 @@ branches:
   release:
     regex: ^releases?[/-]
     mode: ContinuousDelivery
-    tag: beta
+    label: beta
     increment: None
     prevent-increment-of-merged-branch-version: true
     track-merge-target: false
@@ -347,44 +329,29 @@ branches:
   feature:
     regex: ^features?[/-]
     mode: ContinuousDelivery
-    tag: useBranchName
+    label: '{BranchName}'
     increment: Inherit
-    prevent-increment-of-merged-branch-version: false
-    track-merge-target: false
     source-branches: [ 'develop', 'main', 'release', 'feature', 'support', 'hotfix' ]
-    tracks-release-branches: false
-    is-release-branch: false
-    is-mainline: false
     pre-release-weight: 30000
   pull-request:
     regex: ^(pull|pull\-requests|pr)[/-]
     mode: ContinuousDelivery
-    tag: PullRequest
+    label: PullRequest
     increment: Inherit
-    prevent-increment-of-merged-branch-version: false
-    tag-number-pattern: '[/-](?<number>\d+)[-/]'
-    track-merge-target: false
+    label-number-pattern: '[/-](?<number>\d+)[-/]'
     source-branches: [ 'develop', 'main', 'release', 'feature', 'support', 'hotfix' ]
-    tracks-release-branches: false
-    is-release-branch: false
-    is-mainline: false
     pre-release-weight: 30000
   hotfix:
     regex: ^hotfix(es)?[/-]
     mode: ContinuousDelivery
-    tag: beta
-    increment: Patch
-    prevent-increment-of-merged-branch-version: false
-    track-merge-target: false
-    source-branches: [ 'develop', 'main', 'support' ]
-    tracks-release-branches: false
-    is-release-branch: false
-    is-mainline: false
+    label: beta
+    increment: Inherit
+    source-branches: [ 'release', 'main', 'support', 'hotfix' ]
     pre-release-weight: 30000
   support:
     regex: ^support[/-]
     mode: ContinuousDelivery
-    tag: ''
+    label: ''
     increment: Patch
     prevent-increment-of-merged-branch-version: true
     track-merge-target: false
@@ -424,16 +391,16 @@ Take this commit graph
 
 By looking at this graph, you cannot tell which of these scenarios happened:
 
-* feature/foo branches off release/v1.0.0
-  * Branch release/v1.0.0 from main
-  * Branch feature/foo from release/v1.0.0
-  * Add a commit to both release/v1.0.0 and feature/foo
-  * release/v1.0.0 is the base for feature/foo
-* release/v1.0.0 branches off feature/foo
-  * Branch feature/foo from main
-  * Branch release/v1.0.0 from feature/foo
-  * Add a commit to both release/v1.0.0 and feature/foo
-  * feature/foo is the base for release/v1.0.0
+*   feature/foo branches off release/v1.0.0
+    *   Branch release/v1.0.0 from main
+    *   Branch feature/foo from release/v1.0.0
+    *   Add a commit to both release/v1.0.0 and feature/foo
+    *   release/v1.0.0 is the base for feature/foo
+*   release/v1.0.0 branches off feature/foo
+    *   Branch feature/foo from main
+    *   Branch release/v1.0.0 from feature/foo
+    *   Add a commit to both release/v1.0.0 and feature/foo
+    *   feature/foo is the base for release/v1.0.0
 
 Or put more simply, you cannot tell which branch was created first,
 `release/v1.0.0` or `feature/foo`.
@@ -490,15 +457,15 @@ The header for all the individual branch configuration.
 
 Same as for the [global configuration, explained above](#mode).
 
-### tag
+### label
 
-The pre release tag to use for this branch. Use the value `useBranchName` to use
+The pre release label to use for this branch. Use the value `useBranchName` to use
 the branch name instead. For example `feature/foo` would become a pre-release
-tag of `foo` with this value. Use the value `{BranchName}` as a placeholder to
-insert the branch name. For example `feature/foo` would become a pre-release tag
+label of `foo` with this value. Use the value `{BranchName}` as a placeholder to
+insert the branch name. For example `feature/foo` would become a pre-release label
 of `alpha.foo` with the value of `alpha.{BranchName}`.
 
-**Note:** To clear a default use an empty string: `tag: ''`
+**Note:** To clear a default use an empty string: `label: ''`
 
 ### increment
 
@@ -515,15 +482,15 @@ In a GitFlow-based repository, setting this option can have implications on the
 better version source proposed by the `MergeMessageBaseVersionStrategy`. For
 more details and an in-depth analysis, please see [the discussion][2506].
 
-### tag-number-pattern
+### label-number-pattern
 
 Pull requests require us to extract the pre-release number out of the branch
 name so `refs/pulls/534/merge` builds as `PullRequest.534`. This is a regex with
 a named capture group called `number`.
 
 If the branch `mode` is set to `ContinuousDeployment`, then the extracted
-`number` is appended to the name of the pre-release tag and the number portion
-is the number of commits since the last tag. This enables consecutive commits to
+`number` is appended to the name of the pre-release label and the number portion
+is the number of commits since the last label. This enables consecutive commits to
 the pull request branch to generate unique full semantic version numbers when
 the branch is configured to use ContinuousDeployment mode.
 
@@ -533,17 +500,17 @@ the branch is configured to use ContinuousDeployment mode.
 branches:
   pull-request:
     mode: ContinuousDeployment
-    tag: PullRequest
+    label: PullRequest
     increment: Inherit
     track-merge-target: true
-    tag-number-pattern: '[/-](?<number>\d+)[-/]'
+    label-number-pattern: '[/-](?<number>\d+)[-/]'
 ```
 
 ### track-merge-target
 
 Strategy which will look for tagged merge commits directly off the current
 branch. For example `develop` → `release/1.0.0` → merge into `main` and tag
-`1.0.0`. The tag is *not* on develop, but develop should be version `1.0.0` now.
+`1.0.0`. The tag is _not_ on develop, but develop should be version `1.0.0` now.
 
 ### tracks-release-branches
 
@@ -560,7 +527,7 @@ default `main` and `support/*` are mainlines.
 
 ### pre-release-weight
 
-Provides a way to translate the `PreReleaseLabel` ([variables]) to a numeric
+Provides a way to translate the `PreReleaseLabel` ([variables][variables]) to a numeric
 value in order to avoid version collisions across different branches. For
 example, a release branch created after "1.2.3-alpha.55" results in
 "1.2.3-beta.1" and thus e.g. "1.2.3-alpha.4" and "1.2.3-beta.4" would have the
@@ -569,8 +536,21 @@ same file version: "1.2.3.4". One of the ways to use this value is to set
 {Major}.{Minor}.{Patch}.{WeightedPreReleaseNumber}`. If the `pre-release-weight`
 is set, it would be added to the `PreReleaseNumber` to get a final
 `AssemblySemFileVer`, otherwise a branch specific default for
-`pre-release-weight` will be used in the calculation. Related Issues [1145]
-and [1366].
+`pre-release-weight` will be used in the calculation. Related Issues [1145][1145]
+and [1366][1366].
+
+### semver-format
+
+Specifies the semver format that is used when parsing the string.
+Can be `Strict` - using the [regex](https://regex101.com/r/Ly7O1x/3/)
+or `Loose` the old way of parsing. The default if not specified is `Strict`
+Example of invalid `Strict`, but valid `Loose`
+
+```
+1.2-alpha4
+01.02.03-rc03
+1.2.3.4
+```
 
 [1145]: https://github.com/GitTools/GitVersion/issues/1145
 [1366]: https://github.com/GitTools/GitVersion/issues/1366
