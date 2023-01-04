@@ -52,7 +52,7 @@ jobs:
     -
       name: Cache cake frosting
       id: cache-cake
-      uses: actions/cache@v3.2.0
+      uses: actions/cache@v3.2.2
       with:
         path: run
         key: run-${{ runner.os }}-${{ hashFiles('./build/**') }}
@@ -84,14 +84,14 @@ jobs:
     -
       name: Use cached cake frosting
       id: cache-cake
-      uses: actions/cache@v3.2.0
+      uses: actions/cache@v3.2.2
       with:
         path: run
         key: run-${{ runner.os }}-${{ hashFiles('./build/**') }}
     -
       name: Use cached tools
       id: cache-tools
-      uses: actions/cache@v3.2.0
+      uses: actions/cache@v3.2.2
       with:
         path: tools
         key: tools-${{ runner.os }}-${{ hashFiles('./build/**') }}
@@ -147,14 +147,14 @@ jobs:
     -
       name: Use cached cake frosting
       id: cache-cake
-      uses: actions/cache@v3.2.0
+      uses: actions/cache@v3.2.2
       with:
         path: run
         key: run-${{ runner.os }}-${{ hashFiles('./build/**') }}
     -
       name: Use cached tools
       id: cache-tools
-      uses: actions/cache@v3.2.0
+      uses: actions/cache@v3.2.2
       with:
         path: tools
         key: tools-${{ runner.os }}-${{ hashFiles('./build/**') }}
@@ -193,14 +193,14 @@ jobs:
     -
       name: Use cached cake frosting
       id: cache-cake
-      uses: actions/cache@v3.2.0
+      uses: actions/cache@v3.2.2
       with:
         path: run
         key: run-${{ runner.os }}-${{ hashFiles('./build/**') }}
     -
       name: Use cached tools
       id: cache-tools
-      uses: actions/cache@v3.2.0
+      uses: actions/cache@v3.2.2
       with:
         path: tools
         key: tools-${{ runner.os }}-${{ hashFiles('./build/**') }}
@@ -239,14 +239,14 @@ jobs:
     -
       name: Use cached cake frosting
       id: cache-cake
-      uses: actions/cache@v3.2.0
+      uses: actions/cache@v3.2.2
       with:
         path: run
         key: run-${{ runner.os }}-${{ hashFiles('./build/**') }}
     -
       name: Use cached tools
       id: cache-tools
-      uses: actions/cache@v3.2.0
+      uses: actions/cache@v3.2.2
       with:
         path: tools
         key: tools-${{ runner.os }}-${{ hashFiles('./build/**') }}
@@ -303,14 +303,14 @@ jobs:
     -
       name: Use cached cake frosting
       id: cache-cake
-      uses: actions/cache@v3.2.0
+      uses: actions/cache@v3.2.2
       with:
         path: run
         key: run-${{ runner.os }}-${{ hashFiles('./build/**') }}
     -
       name: Use cached tools
       id: cache-tools
-      uses: actions/cache@v3.2.0
+      uses: actions/cache@v3.2.2
       with:
         path: tools
         key: tools-${{ runner.os }}-${{ hashFiles('./build/**') }}
@@ -401,14 +401,14 @@ jobs:
     -
       name: Use cached cake frosting
       id: cache-cake
-      uses: actions/cache@v3.2.0
+      uses: actions/cache@v3.2.2
       with:
         path: run
         key: run-${{ runner.os }}-${{ hashFiles('./build/**') }}
     -
       name: Use cached tools
       id: cache-tools
-      uses: actions/cache@v3.2.0
+      uses: actions/cache@v3.2.2
       with:
         path: tools
         key: tools-${{ runner.os }}-${{ hashFiles('./build/**') }}
@@ -443,14 +443,14 @@ jobs:
     -
       name: Use cached cake frosting
       id: cache-cake
-      uses: actions/cache@v3.2.0
+      uses: actions/cache@v3.2.2
       with:
         path: run
         key: run-${{ runner.os }}-${{ hashFiles('./build/**') }}
     -
       name: Use cached tools
       id: cache-tools
-      uses: actions/cache@v3.2.0
+      uses: actions/cache@v3.2.2
       with:
         path: tools
         key: tools-${{ runner.os }}-${{ hashFiles('./build/**') }}
