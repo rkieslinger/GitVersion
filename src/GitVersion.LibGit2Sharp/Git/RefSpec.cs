@@ -11,8 +11,8 @@ public class RefSpec : IRefSpec
 
     internal RefSpec(LibGit2Sharp.RefSpec refSpec)
         => this.innerRefSpec = refSpec.NotNull();
-    public int CompareTo(IRefSpec? other) => ComparerHelper.Compare(this, other);
-    public bool Equals(IRefSpec? other) => EqualityHelper.Equals(this, other);
+    public int CompareTo(IRefSpec? other) => comparerHelper.Compare(this, other);
+    public bool Equals(IRefSpec? other) => equalityHelper.Equals(this, other);
     public string Specification => this.innerRefSpec.Specification;
     public RefSpecDirection Direction => (RefSpecDirection)this.innerRefSpec.Direction;
     public string Source => this.innerRefSpec.Source;
